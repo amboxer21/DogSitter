@@ -17,8 +17,8 @@ from threading import Thread, Lock
 class Logging(object):
 
     @staticmethod
-    def log(level,message,logfile=str(),verbose=True):
-        logfile = "/home/anthony/Documents/TXT/dogsitter.log"
+    def log(level,message,verbose=True):
+        logfile = "/home/pi/.dogsitter/logs/dogsitter.log"
         comm = re.search("(WARN|INFO|ERROR)", str(level), re.M)
         try:
             handler = logging.handlers.WatchedFileHandler(

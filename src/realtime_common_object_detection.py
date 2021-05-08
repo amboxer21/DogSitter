@@ -324,9 +324,10 @@ class MotionDetection(object):
                         MotionDetection.start_thread(Mail.send,self.email,self.email,self.password,self.email_port,
                             'Motion Detected','MotionDetection.py detected movement!')
 
-                        MotionDetection.start_thread(
-                            MotionDetection.process_image_with_tensorflow,MotionDetection.camera_object.read()[1],('person','bottle'),True
-                        )
+                        # image_processing.py handles this now.
+                        #MotionDetection.start_thread(
+                            #MotionDetection.process_image_with_tensorflow,MotionDetection.camera_object.read()[1],('person','bottle'),True
+                        #)
 
             elif MotionDetection.delta_count < self.motion_thresh_min:
                 self.count  += 1

@@ -7,7 +7,6 @@ import string
 import random
 import logging
 import threading
-import multiprocessing
 import logging.handlers
 
 import cvlib as cv
@@ -91,18 +90,7 @@ class DistributedProcessing(object):
             os.remove(image) 
             #os.system('speaker-test -tsine -f1000 -l1')
 
-    @staticmethod
-    def start_thread(proc,*args):
-        try:
-            t = threading.Thread(target=proc,args=args)
-            t.daemon = False
-            t.start()
-        except Exception as eStartThread:
-            Logging.log("ERROR",
-                "(DistributedProcessing.start_thread) - Threading exception eStartThread => "
-                + str(eStartThread))
-
-    def process(self,pngs=[]):
+    def process(self):
     
         pngs = glob.glob("*.png")
         pngs.sort()

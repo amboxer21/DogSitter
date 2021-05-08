@@ -233,7 +233,7 @@ class MotionDetection(object):
         )
         image = Image.fromarray(frame)
         image.save(picture_name)
-        #MotionDetection.copyfiles(picture_name,'/usr/local/bin/webconfigurator/static/'+capture)
+        MotionDetection.copyfiles(picture_name,'/var/gluster/pi/'+capture)
 
     @staticmethod
     def process_image_with_tensorflow(image,pair=('Person','Dog'),verbose=False):
@@ -340,59 +340,72 @@ if __name__ == '__main__':
     parser.add_option('-i', '--ip',
         dest='ip', default='0.0.0.0',
         help='This is the IP address of the server.')
+
     parser.add_option('-v', '--verbose',
         dest='verbose', action='store_true', default=False,
         help="Turns on verbose logging. This is turned off by default.")
+
     parser.add_option('-E', '--email-port',
         dest='email_port', type='int', default=587,
         help='E-mail port defaults to port 587')
+
     parser.add_option('-l', '--log-file',
         dest='logfile', default='/var/log/motiondetection.log',
         help='Log file defaults to /var/log/motiondetection.log.')
+
     parser.add_option('-D', '--disable-email',
         dest='disable_email', action='store_true', default=False,
         help='This option allows you to disable the sending of E-mails.')
+
     parser.add_option("-g", "--config-file",
         dest="configfile", default=str(),
         help="Configuration file path.")
+
     parser.add_option('-c', '--camera-location',
         dest='cam_location', default='/dev/video0',
         help='Camera index number that defaults to 0. This is the '
             + 'location of the camera - Which is usually /dev/video0.')
+
     parser.add_option('-f', '--fps',
         dest='fps', type='int', default='30',
         help='This sets the frames per second for the motion '
             + 'capture system. It defaults to 30 frames p/s.')
+
     parser.add_option('-e', '--email',
         dest='email',
         help='This argument is required unless you pass the '
             + 'pass the --disable-email flag on the command line. '
             + 'Your E-mail address is used to send the pictures taken as '
             + 'well as notify you of motion detected.')
+
     parser.add_option('-p', '--password',
         dest='password',
         help='This argument is required unless you pass the '
             + 'pass the --disable-email flag on the command line. '
             + 'Your E-mail password is used to send the pictures taken '
             + 'as well as notify you of motion detected.')
+
     parser.add_option('-C', '--camview-port',
         dest='camview_port', type='int', default=5000,
         help='CamView port defaults to port 5000'
             + 'This is the port the streaming feature runs on. '
             + 'The streaming feature is the ability to view the '
             + 'live feed from the camera via ANdroid app.')
+
     parser.add_option('-t', '--delta-threshold-min',
         dest='delta_thresh_min', type='int', default=1500,
         help='Sets the minimum movement threshold '
             + 'to trigger the programs image capturing/motion routines. If movement '
             + 'above this level is detected then this is when MotiondDetection '
             + 'goes to work. The default value is set at 1500.')
+
     parser.add_option('-T', '--delta-threshold-max',
         dest='delta_thresh_max', type='int', default=10000,
         help='Sets the maximum movement threshold when the '
             + 'programs image capturingi/motion routines stops working. '
             + 'If movement above this level is detected then this program '
             + ' will not perform any tasks and sit idle. The default value is set at 10000.')
+
     parser.add_option('-b', '--burst-mode',
         dest='burst_mode_opts', type='int', default='1',
         help='This allows the motiondetection framework to take '
@@ -400,6 +413,7 @@ if __name__ == '__main__':
             + 'detects motion. Example usage for burst mode would look '
             + 'like: --burst-mode=10. 10 being the number of photos to take '
             + 'once motion has been detected.')
+
     parser.add_option('-m', '--motion-threshold-min',
         dest='motion_thresh_min', type='int', default=500,
         help='Sets the minimum movement threshold to start the framework '
@@ -407,6 +421,7 @@ if __name__ == '__main__':
             + 'This is used because even if there is no movement as all '
             + 'the program still receives false hits and the values can '
             + 'range from 1 to around 500 and is what the default is set to - 500.')
+
     parser.add_option('-S', '--server-port',
         dest='server_port', type='int', default=50050,
         help='Server port defaults to port 50050.'
@@ -415,6 +430,7 @@ if __name__ == '__main__':
             + 'the Android app and controls the handling of the '
             + 'camera lock thats passed abck and forth between the '
             + 'streaming server and the motion detection system.')
+
     (options, args) = parser.parse_args()
 
     fileOpts = FileOpts()

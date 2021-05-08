@@ -1,0 +1,48 @@
+#!/bin/bash
+
+#:set ts=4 sw=4
+
+email='amboxer21@gmail.com'
+
+SLEEPSECS=4
+BINDIR=/usr/local/bin
+LOGFILE='/home/pi/.dogsitter/logs/dogsitter.log'
+PRIORITY=0
+MACHINE=`hostname`
+PYTHON='/usr/bin/python3.7'
+
+EXECUTABLE="/usr/local/bin/image_processing.py"
+
+message() {
+    echo "$1" >&2 ;
+    if [[ -n "$SYSLOG" ]] ; then
+        logger -p "${SYSLOG}.warn" -t image_processing.py[$$] "$1" ;
+    fi
+    if [[ -n "$LOGFILE" ]] ; then
+        echo "image_processing.py[$$]: $1" >> "$LOGFILE" ;
+    fi
+}
+
+run_image_processingd() {
+    while true ; do
+        cd $BINDIR ;
+	      $PYTHON $EXECUTABLE ;
+        EXITSTATUS=$? ;
+		    message "image_processing.py ended with exit status $EXITSTATUS" ;
+        if [[ "${EXITSTATUS}" = "0" ]] ; then
+            # Properly shutdown....
+            message "image_processing.py shutdown normally." ;
+            exit 0 ;
+        #else
+            #if [[ -n "${email}" ]] ; then
+            #    echo "image_processing.py on $MACHINE died with exit status $EXITSTATUS.  Might want to take a peek." | \
+            #    sendmail -s "image_processing.py Died" $email | \
+            #    message "Exited on signal $EXITSTATUS" ;
+            #fi
+        fi
+		    message "Automatically restarting image_processing.py." ;
+		    sleep $SLEEPSECS ;
+	  done
+}
+
+run_image_processingd &

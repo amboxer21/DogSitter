@@ -7,7 +7,6 @@ import string
 import random
 import logging
 import threading
-import multiprocessing
 import logging.handlers
 
 import cvlib as cv

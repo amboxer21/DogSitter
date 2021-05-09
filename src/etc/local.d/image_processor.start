@@ -1,12 +1,9 @@
 #!/bin/bash
 
-#email='amboxer21@gmail.com'
-
 SLEEPSECS=4
 BINDIR='/usr/local/bin'
 LOGFILE='/home/pi/.dogsitter/logs/dogsitter.log'
 PYTHON='/usr/bin/python3.7'
-SUDO='/usr/bin/sudo'
 
 EXECUTABLE='/usr/local/bin/image_processing.py'
 
@@ -23,7 +20,7 @@ message() {
 run_image_processingd() {
     while true ; do
         cd $BINDIR ;
-	$SUDO $PYTHON $EXECUTABLE ;
+	$PYTHON $EXECUTABLE ;
         EXITSTATUS=$? ;
 		    message "image_processing.py ended with exit status $EXITSTATUS" ;
         if [[ "${EXITSTATUS}" = "0" ]] ; then

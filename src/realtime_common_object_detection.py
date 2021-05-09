@@ -4,10 +4,12 @@ import cv2
 import sys
 import time
 import glob
+import socket
 import shutil
 import smtplib
 import logging
 import threading
+import multiprocessing
 import logging.handlers
 
 import cvlib as cv
@@ -18,8 +20,6 @@ from optparse import OptionParser
 
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
-
-from moviepy.editor import VideoFileClip, concatenate_videoclips
 
 try:
     import Image
@@ -155,12 +155,11 @@ class MotionDetection(object):
 
     verbose = False
 
+    delta_count    = None
     colored_frame  = None
     camera_object  = None
     current_frame  = None
     previous_frame = None
-
-    delta_count = None
 
     def __init__(self,config_dict={}):
 
@@ -213,7 +212,7 @@ class MotionDetection(object):
         img_list = []
         os.chdir("/home/pi/.dogsitter/images")
         if not FileOpts.file_exists('/home/pi/.dogsitter/images/capture1.png'):
-            Logging.log("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
+            Logging.lg("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
             FileOpts.create_file('/home/pi/.dogsitter/images/capture1.png')
         for file_name in glob.glob("*.png"):
             num = re.search("(capture)(\d+)(\.png)", file_name, re.M | re.I)
@@ -307,8 +306,8 @@ class MotionDetection(object):
 
             MotionDetection.calculate_delta()
 
-            if self.verbose:
-                print("(MotionDetection.capture) - Motion level(delta_count) => "+str(MotionDetection.delta_count))
+            #if self.verbose and not MotionDetection.delta_count == 0:
+                #print("(MotionDetection.capture) - Motion level(delta_count) => "+str(MotionDetection.delta_count))
 
             # The tracker is each time the system detecs movement and the count is each time the system does not detect movement.
             if MotionDetection.delta_count > int(self.delta_thresh_min) and MotionDetection.delta_count < int(self.delta_thresh_max):
@@ -328,6 +327,11 @@ class MotionDetection(object):
                         MotionDetection.start_thread(Mail.send,self.email,self.email,self.password,self.email_port,
                             'Motion Detected','MotionDetection.py detected movement!')
 
+                        if not queue is None and not queue.empty():
+                            Logging.log("INFO", "(MotionDetection.capture) - queue.get() "
+                                + str(queue.get()), self.verbose)
+                            # Start recording video here or push it to another pi to do standalone image to video processing
+
                         # image_processing.py handles this now.
                         #MotionDetection.start_thread(
                             #MotionDetection.process_image_with_tensorflow,MotionDetection.camera_object.read()[1],('person','bottle'),True
@@ -338,6 +342,66 @@ class MotionDetection(object):
                 self.tracker = 0
 
             MotionDetection.update_current_frame()
+
+class Server(MotionDetection):
+
+    def __init__(self,queue):
+        super().__init__(config_dict)
+
+        self.queue = queue
+
+        process = multiprocessing.Process(
+            target=MotionDetection(config_dict).capture,args=(self.queue,)
+        )
+        process.daemon = True
+        process.start()
+
+        try:
+            self.sock = socket.socket()
+            self.sock.bind(('0.0.0.0', self.server_port))
+        except Exception as eSock:
+            #if 'Address already in use' in eSock and PS.aux('motiondetection') is not None:
+            if 'Address already in use' in eSock:
+                Logging.log("ERROR", "(Server.__init__) - eSock error e => "
+                    + str(eSock))
+                os.system('/usr/bin/sudo /sbin/reboot')
+
+    def handle_incoming_message(self,*data):
+        for(sock,queue) in data:
+            message = sock.recv(1024)
+            if('start_recording' in str(message)):
+                Logging.log("INFO",
+                    "(Server.handle_incoming_message) - Starting to record! -> (start_recording)")
+                self.queue.put('start_recording')
+            else:
+                pass
+            sock.close()
+
+    def server_main(self):
+
+        Logging.log("INFO", "(Server.server_main) - Listening for connections.")
+
+        while(True):
+            time.sleep(0.05)
+            try:
+                self.sock.listen(10)
+                (con, addr) = self.sock.accept()
+                #if not '127.0.0.1' in str(addr):
+                if not '1.1.1.1' in str(addr):
+                    Logging.log("INFO",
+                        "(Server.server_main) - Received connection from "
+                        + str(addr))
+
+                Server.handle_incoming_message(self,(con,self.queue))
+
+            except KeyboardInterrupt:
+                print('\n')
+                Logging.log("INFO", "(Server.server_main) - Caught control + c, exiting now.\n")
+                self.sock.close()
+                sys.exit(0)
+            except Exception as eAccept:
+                Logging.log("ERROR", "(Server.server_main) - Socket accept error: "
+                    + str(eAccept))
 
 if __name__ == '__main__':
 
@@ -467,4 +531,5 @@ if __name__ == '__main__':
 
     motiondetection = MotionDetection(config_dict)
     motiondetection.waitforcamera()
-    motiondetection.capture()
+
+    Server(multiprocessing.Queue()).server_main()

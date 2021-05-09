@@ -1,0 +1,2 @@
+/usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi3:glusterfs /var/gluster/pi
+/usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi3:glusterfs /var/gluster/dogsitter

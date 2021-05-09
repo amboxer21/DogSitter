@@ -3,6 +3,7 @@ import re
 import cv2
 import glob
 import time
+import socket
 import string
 import random
 import logging
@@ -68,26 +69,63 @@ class Logging(object):
             pass
         return
 
+class Client(object):
+
+    __timeout__ = 1
+    __sleep__   = 0.5
+
+    def __init__(self,ipaddr,port):
+        self.port   = port
+        self.ipaddr = ipaddr
+
+    def send_message(self,message=str()):
+        try:
+            time.sleep(Client.__sleep__)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(Client.__timeout__)
+            sock.connect((self.ipaddr,self.port))
+            sock.send(message)
+            sock.close()
+        except Exception as sendMessageException:
+            Logging.log("ERROR","(Client.send_message) - Exception sendMessageException: "
+                + str(sendMessageException))
+            pass
+
 class DistributedProcessing(object):
 
-    def __init__(self):
+    def __init__(self,config_dict={}):
 
-        self.pi      = {}
-        self.path    = '/var/gluster/pi/'
+        self.port    = config_dict['port']
+        self.ipaddr  = config_dict['ipaddr']
         self.lock_id = DistributedProcessing.create_lock(14) 
 
-    @staticmethod
-    def process_image_with_tensorflow(image,pair=('Person','Dog'),verbose=False):
+    def process_image_with_tensorflow(self,image,pair=('Person','Dog'),verbose=False):
 
         bbox, label, conf = cv.detect_common_objects(cv2.imread(image))
         
         if(pair[0] and pair[1]) in label:
+
+            try:
+
+                client = Client(self.ipaddr,self.port)
+                client.send_message('start_recording')
+
+                Logging.log("INFO","(DistributedProcessing.process_image_with_tensorflow) - "
+                    + " Sent 'start_recording' string to "
+                    + "address " + str(self.ipaddr)
+                    + ":" + str(self.port) + ".")
+            except Exception as clientException:
+                Logging.log("ERROR","(DistributedProcessing.process_image_with_tensorflow) - Exception clientException: "
+                    + str(clientException))
+
             Logging.log("INFO","(DistributedProcessing.process_image_with_tensorflow) - "
                 + pair[0] + " and "
                 + pair[1] + " found in image "
                 + image, verbose)
+
             #os.system('speaker-test -tsine -f1000 -l1')
-        os.remove(image) 
+        else:
+            os.remove(image) 
 
     def process(self):
 
@@ -96,8 +134,10 @@ class DistributedProcessing(object):
         pngs = glob.glob("*.png")
         pngs.sort()
 
-        for png in pngs[:2]:
+        for png in pngs[:3]:
+
             locked_png = png + "." + self.lock_id
+
             try:
                 DistributedProcessing.mv(png,locked_png)
             except Exception as exception:
@@ -105,7 +145,7 @@ class DistributedProcessing(object):
                 continue
 
             try:
-                DistributedProcessing.process_image_with_tensorflow(locked_png,('person','bottle'),True)
+                self.process_image_with_tensorflow(locked_png,('person','bottle'),True)
             except Exception as exception:
                 Logging.log('ERROR','(DistributedProcessing.process)(2) - Exception exception => '+str(exception),True)
                 continue
@@ -120,8 +160,30 @@ class DistributedProcessing(object):
 
 if __name__ == '__main__':
 
+    parser = OptionParser()
+
+    parser.add_option('-i', '--ip',
+        dest='ipaddr', default='0.0.0.0',
+        help='This is the IP address of the server.')
+
+    parser.add_option('-S', '--server-port',
+        dest='server_port', type='int', default=50050,
+        help='Server port defaults to port 50050.'
+            + 'This is the port the command server runs on. '
+            + 'This server listens for specific commands from '
+            + 'the Android app and controls the handling of the '
+            + 'camera lock thats passed abck and forth between the '
+            + 'streaming server and the motion detection system.')
+
+    (options, args) = parser.parse_args()
+
+
+    config_dict = {
+        'ipaddr': options.ipaddr, 'port': options.port,
+    }
+
     mutex = Lock()
-    dp    = DistributedProcessing()
+    dp    = DistributedProcessing(config_dict)
 
     while(True):
         mutex.acquire()

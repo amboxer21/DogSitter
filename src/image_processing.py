@@ -20,7 +20,7 @@ class Logging(object):
 
     @staticmethod
     def log(level,message,logfile=str(),verbose=True):
-        logfile = "/home/pi/.dogsitter/logs/dogsitter.log"
+        logfile = "/var/gluster/pi/dogsitter.log"
         comm = re.search("(WARN|INFO|ERROR)", str(level), re.M)
         try:
             handler = logging.handlers.WatchedFileHandler(

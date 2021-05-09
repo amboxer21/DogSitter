@@ -1,13 +1,10 @@
-Password: 
 #!/bin/bash
 
 #:set ts=4 sw=4
 
 SLEEPSECS=4
-BINDIR=/usr/local/bin
+BINDIR='/usr/local/bin'
 LOGFILE='/home/pi/.dogsitter/logs/dogsitter.log'
-PRIORITY=0
-MACHINE=`hostname`
 PYTHON='/usr/bin/python3.7'
 SUDO='/usr/bin/sudo'
 
@@ -31,8 +28,8 @@ delta_thresh_max=$(awk -F= '/^delta_thresh_max=/{print $2}' ${CFG})
 delta_thresh_min=$(awk -F= '/^delta_thresh_min=/{print $2}' ${CFG})
 motion_thresh_min=$(awk -F= '/^motion_thresh_min=/{print $2}' ${CFG})
 
-command="-e${email} -p${password} -c${cam_location} -b${burst_mode_opts} -f${fps} -l${logfile}"
-command="${command} -E${email_port} -T${delta_thresh_max} -t${delta_thresh_min} -m${motion_thresh_min}"
+command="-e${email} -p${password} -c${cam_location} -b${burst_mode_opts} -f${fps} -l${logfile} "
+command="${command} -S${server_port} -E${email_port} -T${delta_thresh_max} -t${delta_thresh_min} -m${motion_thresh_min}"
 
 if [[ $verbose == 'True' ]] ; then
     command="$command --verbose";

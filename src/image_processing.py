@@ -17,7 +17,7 @@ from threading import Thread, Lock
 class Logging(object):
 
     @staticmethod
-    def log(level,message,verbose=True):
+    def log(level,message,logfile=str(),verbose=True):
         logfile = "/home/pi/.dogsitter/logs/dogsitter.log"
         comm = re.search("(WARN|INFO|ERROR)", str(level), re.M)
         try:
@@ -48,7 +48,7 @@ class Logging(object):
             if verbose or str(level) == 'ERROR':
                 print("(" + str(level) + ") "
                     + str(time.asctime(time.localtime(time.time()))
-                    + " - ImageCapture - "
+                    + " - DogSitter - "
                     + str(message)))
         except IOError as eIOError:
             if re.search('\[Errno 13\] Permission denied:', str(eIOError), re.M | re.I):
@@ -76,9 +76,8 @@ class DistributedProcessing(object):
         self.path    = '/var/gluster/pi/'
         self.lock_id = DistributedProcessing.create_lock(14) 
 
-        os.chdir('/var/gluster/pi')
-
-    def process_image_with_tensorflow(self,image,pair=('Person','Dog'),verbose=False):
+    @staticmethod
+    def process_image_with_tensorflow(image,pair=('Person','Dog'),verbose=False):
 
         bbox, label, conf = cv.detect_common_objects(cv2.imread(image))
         
@@ -87,10 +86,12 @@ class DistributedProcessing(object):
                 + pair[0] + " and "
                 + pair[1] + " found in image "
                 + image, verbose)
-            os.remove(image) 
             #os.system('speaker-test -tsine -f1000 -l1')
+        os.remove(image) 
 
     def process(self):
+
+        os.chdir('/var/gluster/pi')
     
         pngs = glob.glob("*.png")
         pngs.sort()
@@ -98,13 +99,16 @@ class DistributedProcessing(object):
         for png in pngs[:2]:
             locked_png = png + "." + self.lock_id
             try:
-
-                DistributedProcessing.mv(self.path+png,self.path+locked_png)
-                self.process_image_with_tensorflow(locked_png,('person','bottle'),True)
-
+                DistributedProcessing.mv(png,locked_png)
             except Exception as exception:
-                Logging.log('ERROR','(DistributedProcessing.process) - Exception exception => '+str(exception),True)
-                pass
+                Logging.log('ERROR','(DistributedProcessing.process)(1) - Exception exception => '+str(exception),True)
+                continue
+
+            try:
+                DistributedProcessing.process_image_with_tensorflow(locked_png,('person','bottle'),True)
+            except Exception as exception:
+                Logging.log('ERROR','(DistributedProcessing.process)(2) - Exception exception => '+str(exception),True)
+                continue
 
     @staticmethod
     def mv(filename,linkname):

@@ -5,6 +5,7 @@ import sys
 import time
 import glob
 import shutil
+import smtplib
 import logging
 import threading
 import logging.handlers
@@ -14,6 +15,9 @@ import numpy as np
 
 from shutil import copyfile
 from optparse import OptionParser
+
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
 
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 
@@ -29,7 +33,7 @@ class Logging(object):
         comm = re.search("(WARN|INFO|ERROR)", str(level), re.M)
         try:
             handler = logging.handlers.WatchedFileHandler(
-                os.environ.get("LOGFILE","/home/anthony/Documents/TXT/dogsitter.log")
+                os.environ.get("LOGFILE","/home/pi/.dogsitter/logs/dogsitter.log")
             )
             formatter = logging.Formatter(logging.BASIC_FORMAT)
             handler.setFormatter(formatter)
@@ -86,7 +90,7 @@ class Mail(object):
                 message = MIMEMultipart()
                 message['Body'] = body
                 message['Subject'] = subject
-                message.attach(MIMEImage(open("/home/anthony/.dogsitter/images/capture"
+                message.attach(MIMEImage(open("/home/pi/.dogsitter/images/capture"
                     + str(MotionDetection.img_num())
                     + ".png","rb").read()))
                 mail = smtplib.SMTP('smtp.gmail.com',port)
@@ -207,10 +211,10 @@ class MotionDetection(object):
     @staticmethod
     def img_num():
         img_list = []
-        os.chdir("/home/anthony/.dogsitter/images")
-        if not FileOpts.file_exists('/home/anthony/.dogsitter/images/capture1.png'):
+        os.chdir("/home/pi/.dogsitter/images")
+        if not FileOpts.file_exists('/home/pi/.dogsitter/images/capture1.png'):
             Logging.log("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
-            FileOpts.create_file('/home/anthony/.dogsitter/images/capture1.png')
+            FileOpts.create_file('/home/pi/.dogsitter/images/capture1.png')
         for file_name in glob.glob("*.png"):
             num = re.search("(capture)(\d+)(\.png)", file_name, re.M | re.I)
             img_list.append(int(num.group(2)))
@@ -228,7 +232,7 @@ class MotionDetection(object):
             + '.png'
         )
         picture_name = (
-            '/home/anthony/.dogsitter/images/'
+            '/home/pi/.dogsitter/images/'
             + capture 
         )
         image = Image.fromarray(frame)

@@ -1,3 +1,4 @@
+Password: 
 #!/bin/bash
 
 #:set ts=4 sw=4
@@ -8,6 +9,7 @@ LOGFILE='/home/pi/.dogsitter/logs/dogsitter.log'
 PRIORITY=0
 MACHINE=`hostname`
 PYTHON='/usr/bin/python3.7'
+SUDO='/usr/bin/sudo'
 
 CFG="/etc/dogsitter/dogsitter.cfg"
 EXECUTABLE="/usr/local/bin/realtime_common_object_detection.py"
@@ -54,7 +56,7 @@ message() {
 run_realtime_common_object_detectiond() {
     while true ; do
         cd $BINDIR ;
-	$PYTHON $EXECUTABLE $command;
+	$SUDO $PYTHON $EXECUTABLE $command;
         EXITSTATUS=$? ;
         message "realtime_common_object_detection.py ended with exit status $EXITSTATUS" ;
         if [[ "${EXITSTATUS}" = "0" ]] ; then

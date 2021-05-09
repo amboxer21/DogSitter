@@ -13,6 +13,7 @@ import logging.handlers
 import cvlib as cv
 import numpy as np
 
+from optparse import OptionParser
 from threading import Thread, Lock
 
 class Logging(object):
@@ -95,8 +96,8 @@ class DistributedProcessing(object):
 
     def __init__(self,config_dict={}):
 
-        self.port    = config_dict['port']
-        self.ipaddr  = config_dict['ipaddr']
+        self.ipaddr  = config_dict['ip']
+        self.port    = config_dict['server_port']
         self.lock_id = DistributedProcessing.create_lock(14) 
 
     def process_image_with_tensorflow(self,image,pair=('Person','Dog'),verbose=False):
@@ -163,7 +164,7 @@ if __name__ == '__main__':
     parser = OptionParser()
 
     parser.add_option('-i', '--ip',
-        dest='ipaddr', default='0.0.0.0',
+        dest='ip', default='0.0.0.0',
         help='This is the IP address of the server.')
 
     parser.add_option('-S', '--server-port',
@@ -179,7 +180,7 @@ if __name__ == '__main__':
 
 
     config_dict = {
-        'ipaddr': options.ipaddr, 'port': options.port,
+        'ip': options.ip, 'server_port': options.server_port,
     }
 
     mutex = Lock()

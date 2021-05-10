@@ -212,7 +212,7 @@ class MotionDetection(object):
         img_list = []
         os.chdir("/home/pi/.dogsitter/images")
         if not FileOpts.file_exists('/home/pi/.dogsitter/images/capture1.png'):
-            Logging.lg("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
+            Logging.log("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
             FileOpts.create_file('/home/pi/.dogsitter/images/capture1.png')
         for file_name in glob.glob("*.png"):
             num = re.search("(capture)(\d+)(\.png)", file_name, re.M | re.I)
@@ -225,15 +225,10 @@ class MotionDetection(object):
     
     @staticmethod
     def take_picture(frame):
-        capture = (
-            'capture'
-            + str(MotionDetection.img_num() + 1)
-            + '.png'
-        )
-        picture_name = (
-            '/home/pi/.dogsitter/images/'
-            + capture 
-        )
+
+        capture = 'capture' + str(MotionDetection.img_num() + 1) + '.png'
+        picture_name = '/home/pi/.dogsitter/images/' + capture 
+
         image = Image.fromarray(frame)
         image.save(picture_name)
         MotionDetection.copyfiles(picture_name,'/var/gluster/pi/'+capture)

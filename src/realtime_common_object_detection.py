@@ -33,7 +33,7 @@ class Logging(object):
         comm = re.search("(WARN|INFO|ERROR)", str(level), re.M)
         try:
             handler = logging.handlers.WatchedFileHandler(
-                os.environ.get("LOGFILE","/var/gluster/pi/dogsitter.log")
+                os.environ.get("LOGFILE","/home/pi/.dogsitter/logs/dogsitter.log")
             )
             formatter = logging.Formatter(logging.BASIC_FORMAT)
             handler.setFormatter(formatter)
@@ -90,7 +90,7 @@ class Mail(object):
                 message = MIMEMultipart()
                 message['Body'] = body
                 message['Subject'] = subject
-                message.attach(MIMEImage(open("/var/gluster/pi/capture"
+                message.attach(MIMEImage(open("/home/pi/.dogsitter/images/capture"
                     + str(MotionDetection.img_num())
                     + ".png","rb").read()))
                 mail = smtplib.SMTP('smtp.gmail.com',port)
@@ -234,20 +234,6 @@ class MotionDetection(object):
         MotionDetection.copyfiles(picture_name,'/var/gluster/pi/'+capture)
 
     @staticmethod
-    def process_image_with_tensorflow(image,pair=('Person','Dog'),verbose=False):
-        bbox, label, conf = cv.detect_common_objects(image)
-
-        # Check lowercase strings as well.
-        pair0 = pair[0][0].lower() + pair[0][1:] # person
-        pair1 = pair[1][0].lower() + pair[1][1:] # bottle
-
-        if((pair[0] and pair[1]) or (pair0 and pair1)) in label:
-            Logging.log("INFO","(MotionDetection.process_image_with_tensorflow) - "
-                + pair[0] + " and "
-                + pair[1] + " found!", verbose)
-            os.system('speaker-test -tsine -f1000 -l1') 
-
-    @staticmethod
     def start_thread(proc,*args):
         try:
             t = threading.Thread(target=proc,args=args)
@@ -301,9 +287,6 @@ class MotionDetection(object):
 
             MotionDetection.calculate_delta()
 
-            #if self.verbose and not MotionDetection.delta_count == 0:
-                #print("(MotionDetection.capture) - Motion level(delta_count) => "+str(MotionDetection.delta_count))
-
             # The tracker is each time the system detecs movement and the count is each time the system does not detect movement.
             if MotionDetection.delta_count > int(self.delta_thresh_min) and MotionDetection.delta_count < int(self.delta_thresh_max):
                 self.tracker += 1
@@ -327,11 +310,6 @@ class MotionDetection(object):
                                 + str(queue.get()), self.verbose)
                             # Start recording video here or push it to another pi to do standalone image to video processing
 
-                        # image_processing.py handles this now.
-                        #MotionDetection.start_thread(
-                            #MotionDetection.process_image_with_tensorflow,MotionDetection.camera_object.read()[1],('person','bottle'),True
-                        #)
-
             elif MotionDetection.delta_count < self.motion_thresh_min:
                 self.count  += 1
                 self.tracker = 0
@@ -345,9 +323,7 @@ class Server(MotionDetection):
 
         self.queue = queue
 
-        process = multiprocessing.Process(
-            target=MotionDetection(config_dict).capture,args=(self.queue,)
-        )
+        process = multiprocessing.Process( target=MotionDetection(config_dict).capture,args=(self.queue,) )
         process.daemon = True
         process.start()
 
@@ -414,8 +390,8 @@ if __name__ == '__main__':
         help='E-mail port defaults to port 587')
 
     parser.add_option('-l', '--log-file',
-        dest='logfile', default='/var/gluster/pi/dogsitter.log',
-        help='Log file defaults to /var/gluster/dogsitter.log.')
+        dest='logfile', default='/var/log/motiondetection.log',
+        help='Log file defaults to /var/log/motiondetection.log.')
 
     parser.add_option('-D', '--disable-email',
         dest='disable_email', action='store_true', default=False,

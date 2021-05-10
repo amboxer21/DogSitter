@@ -85,7 +85,7 @@ class Client(object):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(Client.__timeout__)
             sock.connect((self.ipaddr,self.port))
-            sock.send(message)
+            sock.send(bytes(message,'utf-8'))
             sock.close()
         except Exception as sendMessageException:
             Logging.log("ERROR","(Client.send_message) - Exception sendMessageException: "
@@ -140,15 +140,11 @@ class DistributedProcessing(object):
             locked_png = png + "." + self.lock_id
 
             try:
-                DistributedProcessing.mv(png,locked_png)
+                if not 'capture1.png' in png:
+                    DistributedProcessing.mv(png,locked_png)
+                    self.process_image_with_tensorflow(locked_png,('person','bottle'),True)
             except Exception as exception:
-                Logging.log('ERROR','(DistributedProcessing.process)(1) - Exception exception => '+str(exception),True)
-                continue
-
-            try:
-                self.process_image_with_tensorflow(locked_png,('person','bottle'),True)
-            except Exception as exception:
-                Logging.log('ERROR','(DistributedProcessing.process)(2) - Exception exception => '+str(exception),True)
+                Logging.log('ERROR','(DistributedProcessing.process) - Exception exception => '+str(exception),True)
                 continue
 
     @staticmethod

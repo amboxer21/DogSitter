@@ -211,15 +211,9 @@ class MotionDetection(object):
     def img_num():
         img_list = []
         os.chdir("/home/pi/.dogsitter/images")
-<<<<<<< HEAD
         if not FileOpts.file_exists('/home/pi/.dogsitter/images/capture1.png'):
             Logging.log("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
             FileOpts.create_file('/home/pi/.dogsitter/images/capture1.png')
-=======
-        if not FileOpts.file_exists('/var/gluster/pi/capture1.png'):
-            Logging.lg("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
-            FileOpts.create_file('/var/gluster/pi/capture1.png')
->>>>>>> 1dc0eec288a471aeb2a37478a370441af66fe109
         for file_name in glob.glob("*.png"):
             num = re.search("(capture)(\d+)(\.png)", file_name, re.M | re.I)
             img_list.append(int(num.group(2)))
@@ -231,22 +225,10 @@ class MotionDetection(object):
     
     @staticmethod
     def take_picture(frame):
-<<<<<<< HEAD
 
         capture = 'capture' + str(MotionDetection.img_num() + 1) + '.png'
         picture_name = '/home/pi/.dogsitter/images/' + capture 
 
-=======
-        capture = (
-            'capture'
-            + str(MotionDetection.img_num() + 1)
-            + '.png'
-        )
-        picture_name = (
-            '/var/gluster/pi/'
-            + capture 
-        )
->>>>>>> 1dc0eec288a471aeb2a37478a370441af66fe109
         image = Image.fromarray(frame)
         image.save(picture_name)
         MotionDetection.copyfiles(picture_name,'/var/gluster/pi/'+capture)

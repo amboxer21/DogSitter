@@ -33,7 +33,7 @@ class Logging(object):
         comm = re.search("(WARN|INFO|ERROR)", str(level), re.M)
         try:
             handler = logging.handlers.WatchedFileHandler(
-                os.environ.get("LOGFILE","/home/pi/.dogsitter/logs/dogsitter.log")
+                os.environ.get("LOGFILE","/var/gluster/pi/dogsitter.log")
             )
             formatter = logging.Formatter(logging.BASIC_FORMAT)
             handler.setFormatter(formatter)
@@ -90,7 +90,7 @@ class Mail(object):
                 message = MIMEMultipart()
                 message['Body'] = body
                 message['Subject'] = subject
-                message.attach(MIMEImage(open("/home/pi/.dogsitter/images/capture"
+                message.attach(MIMEImage(open("/var/gluster/pi/capture"
                     + str(MotionDetection.img_num())
                     + ".png","rb").read()))
                 mail = smtplib.SMTP('smtp.gmail.com',port)
@@ -211,9 +211,15 @@ class MotionDetection(object):
     def img_num():
         img_list = []
         os.chdir("/home/pi/.dogsitter/images")
+<<<<<<< HEAD
         if not FileOpts.file_exists('/home/pi/.dogsitter/images/capture1.png'):
             Logging.log("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
             FileOpts.create_file('/home/pi/.dogsitter/images/capture1.png')
+=======
+        if not FileOpts.file_exists('/var/gluster/pi/capture1.png'):
+            Logging.lg("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
+            FileOpts.create_file('/var/gluster/pi/capture1.png')
+>>>>>>> 1dc0eec288a471aeb2a37478a370441af66fe109
         for file_name in glob.glob("*.png"):
             num = re.search("(capture)(\d+)(\.png)", file_name, re.M | re.I)
             img_list.append(int(num.group(2)))
@@ -225,10 +231,22 @@ class MotionDetection(object):
     
     @staticmethod
     def take_picture(frame):
+<<<<<<< HEAD
 
         capture = 'capture' + str(MotionDetection.img_num() + 1) + '.png'
         picture_name = '/home/pi/.dogsitter/images/' + capture 
 
+=======
+        capture = (
+            'capture'
+            + str(MotionDetection.img_num() + 1)
+            + '.png'
+        )
+        picture_name = (
+            '/var/gluster/pi/'
+            + capture 
+        )
+>>>>>>> 1dc0eec288a471aeb2a37478a370441af66fe109
         image = Image.fromarray(frame)
         image.save(picture_name)
         MotionDetection.copyfiles(picture_name,'/var/gluster/pi/'+capture)
@@ -414,8 +432,8 @@ if __name__ == '__main__':
         help='E-mail port defaults to port 587')
 
     parser.add_option('-l', '--log-file',
-        dest='logfile', default='/var/log/motiondetection.log',
-        help='Log file defaults to /var/log/motiondetection.log.')
+        dest='logfile', default='/var/gluster/pi/dogsitter.log',
+        help='Log file defaults to /var/gluster/dogsitter.log.')
 
     parser.add_option('-D', '--disable-email',
         dest='disable_email', action='store_true', default=False,

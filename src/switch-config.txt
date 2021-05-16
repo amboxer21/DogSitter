@@ -1,0 +1,38 @@
+config
+vlan 200
+exit
+
+config
+interface port-channel 1
+switchport mode access
+switchport access vlan 200
+pvid 200
+exit
+
+config
+interface port-channel 2
+switchport mode access
+switchport access vlan 200
+pvid 200
+exit
+
+config
+interface port-channel 3
+switchport mode access
+switchport access vlan 200
+pvid 200
+exit
+
+config
+interface port-channel 4
+switchport mode access
+switchport access vlan 200
+pvid 200
+exit
+
+config
+interface port-channel 10
+switchport mode trunk
+switchport trunk native vlan 1
+switchport trunk allowed vlan all
+exit

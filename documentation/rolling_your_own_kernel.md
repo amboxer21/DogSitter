@@ -10,7 +10,7 @@ https://www.stephenwagner.com/2020/03/17/how-to-compile-linux-kernel-raspberry-p
 
 ---
 
-**Commands to roll your own kernel
+**Commands to roll your own kernel**
 
 ```javascript
 apt install raspberrypi-kernel-headers build-essential bc git wget bison flex libssl-dev make libncurses-dev

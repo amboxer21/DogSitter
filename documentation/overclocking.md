@@ -1,0 +1,1 @@
+https://wiki.archlinux.org/title/CPU_frequency_scaling?fbclid=IwAR3iuO9hOSRrgXWf3QmQq-dj5Bly71AgFpAYOQxKQCzf2CzFlvKepzBLsxI#Scaling_governors

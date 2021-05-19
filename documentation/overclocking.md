@@ -22,5 +22,5 @@ dtparam=i2c1=on
 over_voltage=6
 arm_freq=2000
 arm_freq_min=1950
-#gpu_freq=750
+gpu_freq=750
 ```

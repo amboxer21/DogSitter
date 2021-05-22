@@ -6,6 +6,10 @@ https://www.stephenwagner.com/2020/03/17/how-to-compile-linux-kernel-raspberry-p
 
 ---
 
+sudo emerge -av sys-devel/bc
+
+---
+
 ## Instructions
 
 > NEEDS FORMATTING

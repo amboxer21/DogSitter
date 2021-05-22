@@ -24,3 +24,10 @@ arm_freq=2000
 arm_freq_min=1950
 gpu_freq=750
 ```
+
+
+sudo emerge -av media-libs/raspberrypi-userland stress-ng
+
+sudo watch -n 1 vcgencmd measure_clock arm
+
+stress-ng

@@ -30,4 +30,4 @@ sudo emerge -av media-libs/raspberrypi-userland stress-ng
 
 sudo watch -n 1 vcgencmd measure_clock arm
 
-stress-ng
+sudo stress-ng --cpu 4 --io 4 --vm 2 --vm-bytes 128M --fork 4 --timeout 60s

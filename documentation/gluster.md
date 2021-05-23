@@ -16,6 +16,23 @@ localhost ~ # eix glusterfs
 localhost ~ #
 ```
 
+creating capture volume 
+```
+gluster volume create capture replica 4 pi1:/export/capture pi2:/export/capture pi3:/export/capture pi4:/export/capture force
+```
+
+create logs volume 
+```
+gluster volume create logs replica 4 pi1:/export/logs pi2:/export/logs pi3:/export/logs pi4:/export/logs force
+```
+
+start the volumes 
+```
+gluste rvol start logs
+gluste rvol start capture
+```
+
+
 ```
 All nodes must be running the same gluster version
 

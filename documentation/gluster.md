@@ -16,4 +16,32 @@ localhost ~ # eix glusterfs
 localhost ~ #
 ```
 
+```
 All nodes must be running the same gluster version
+
+localhost ~ # rc-uodate add glusterd
+-bash: rc-uodate: command not found
+localhost ~ # rc-update add glusterd
+ * rc-update: glusterd already installed in runlevel `default'; skipping
+localhost ~ # ls /var/gluster/
+dogsitter  pi
+localhost ~ # rm -r /var/gluster/pi
+localhost ~ # rm -r /var/gluster/dogsitter
+localhost ~ # aagluster volume create pi
+-bash: aagluster: command not found
+localhost ~ # gluster volume create glusterfs replica 4 transport tcp pi1:/export pi2:/export pi3:/export pi4:/export
+volume create: glusterfs: failed: The brick pi4:/export is being created in the root partition. It is recommended that you don't use the system's root partition for storage backend. Or use 'force' at the end of the command if you want to override this behavior.
+localhost ~ # gluster volume create glusterfs replica 4 transport tcp pi1:/export pi2:/export pi3:/export pi4:/export force
+volume create: glusterfs: success: please start the volume to access data
+localhost ~ # gluster volume list
+glusterfs
+localhost ~ # gluster volume start glusterfs
+volume start: glusterfs: success
+localhost ~ # gluster volume set gfs auth.allow 10.0.0.2,10.0.0.3,10.0.0.4
+volume set: failed: Volume gfs does not exist
+localhost ~ # gluster volume set glusterfs auth.allow 192.168.1.105,192.168.1.217,192.168.1.218,192.168.1.232
+volume set: success
+localhost ~ # gluster volume set glusterfs auth.allow 192.168.1.105,192.168.1.217,192.168.1.218,192.168.1.232,192.168.1.248
+volume set: success
+localhost ~ #
+```

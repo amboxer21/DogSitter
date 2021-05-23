@@ -1,2 +1,12 @@
-/usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi3:glusterfs /var/gluster/pi
-/usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi3:glusterfs /var/gluster/dogsitter
+#!/bin/bash
+
+if [[ -n /var/gluster/logs ]] ; then
+   mkdir -p /var/gluster/logs ;
+
+fi
+/usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi2:logs /var/gluster/logs
+
+if [[ -n /var/gluster/capture ]] ; then
+   mkdir -p /var/gluster/capture ;
+fi
+/usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi2:capture /var/gluster/capture

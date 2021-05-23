@@ -26,9 +26,15 @@ create logs volume
 gluster volume create logs replica 4 pi1:/export/logs pi2:/export/logs pi3:/export/logs pi4:/export/logs force
 ```
 
+create the videos volume
+```
+gluster volume create videos replica 4 pi1:/export/videos pi2:/export/videos pi3:/export/videos pi4:/export/videos force
+```
+
 start the volumes 
 ```
 gluste rvol start logs
+gluste rvol start videos
 gluste rvol start capture
 ```
 

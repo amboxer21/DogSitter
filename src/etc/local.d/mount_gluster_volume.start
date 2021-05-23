@@ -1,12 +1,40 @@
 #!/bin/bash
-
-if [[ -n /var/gluster/logs ]] ; then
-   mkdir -p /var/gluster/logs ;
-
+  
+if [[ ! -e /var/gluster/logs ]] ; then
+    mkdir -p /var/gluster/logs ;
+    echo "[INFO] Creating gluster mount point /var/gluster/logs" ;
+else
+    echo "[WARN] Mountpoint /var/gluster/logs already exists." ;
 fi
-/usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi2:logs /var/gluster/logs
 
-if [[ -n /var/gluster/capture ]] ; then
-   mkdir -p /var/gluster/capture ;
+if [[ ! -e $(mount | awk '/pi2:logs/{print $3}') ]] ; then
+    /usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi2:logs /var/gluster/logs 2> /dev/null ;
+else
+    echo "[WARN] Gluster volume logs already mounted." ;
 fi
-/usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi2:capture /var/gluster/capture
+
+if [[ ! -e /var/gluster/videos ]] ; then
+    mkdir -p /var/gluster/videos ;
+    echo "[INFO] Creating gluster mount point /var/gluster/videos" ;
+else
+    echo "[WARN] Mountpoint /var/gluster/videos already exists." ;
+fi
+
+if [[ ! -e $(mount | awk '/pi2:videos/{print $3}') ]] ; then
+    /usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi2:videos /var/gluster/videos 2> /dev/null ;
+else
+    echo "[WARN] Gluster volume videos already mounted." ;
+fi
+
+if [[ ! -e /var/gluster/capture ]] ; then
+    mkdir -p /var/gluster/capture ;
+    echo "[INFO] Creating gluster mount point /var/gluster/capture" ;
+else
+    echo "[WARN] Mountpoint /var/gluster/capture already exists." ;
+fi
+
+if [[ ! -e $(mount | awk '/pi2:capture/{print $3}') ]] ; then
+    /usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi2:capture /var/gluster/capture 2> /dev/null ;
+else
+    echo "[WARN] Gluster volume capture already mounted." ;
+fi

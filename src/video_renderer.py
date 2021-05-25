@@ -12,8 +12,6 @@ class VideoRenderer(object):
  
     def __init__(self,config_dict):
 
-        self.tagged_images_hash = {}
-
         self.path       = config_dict['path']
         self.fps        = int(config_dict['fps'])
         self.glob_regex = config_dict['glob_regex']
@@ -23,22 +21,22 @@ class VideoRenderer(object):
     def change_directory(path):
         os.chdir(path)
 
-    def convert_list_into_sorted_hash(self,tagged_images_array=[],image_hash={}):
-        for index in range(0,len(tagged_images_array)):
-            grouped = re.search('(capture)(\d+)(.png)\.([\w\d]+)', tagged_images_array[index], re.I)
+    def convert_list_into_sorted_dict(self,tagged_images_list=[],image_dict={}):
+        for index in range(0,len(tagged_images_list)):
+            grouped = re.search('(capture)(\d+)(.png)\.([\w\d]+)', tagged_images_list[index], re.I)
             if not grouped is None:
-                if not grouped.group(4) in image_hash:
-                    image_hash[grouped.group(4)] = []
-                image_hash[grouped.group(4)].append(grouped.group())
-        return image_hash
+                if not grouped.group(4) in image_dict:
+                    image_dict[grouped.group(4)] = []
+                image_dict[grouped.group(4)].append(grouped.group())
+        return image_dict
 
 
-    def images_array(self,tagged_images_hash={}):
+    def images_list(self,tagged_images_dict={}):
         VideoRenderer.change_directory(self.path)
         return glob.glob(self.glob_regex+'.*')
  
     def render(self):
-        for key,data in self.convert_list_into_sorted_hash(self.images_array()).items():
+        for key,data in self.convert_list_into_sorted_dict(self.images_list()).items():
             for f in data:
                 image = cv2.imread(f)
                 height, width, layers = image.shape
@@ -57,7 +55,7 @@ if __name__ == '__main__':
         help='.')
 
     parser.add_option('-p', '--path',
-        dest='path', default='/home/anthony/Pictures/capture/videos/',
+        dest='path', default='/var/gluster/videos/',
         help='.')
 
     parser.add_option('-g', '--glob-regex',

@@ -20,7 +20,7 @@ class Logging(object):
 
     @staticmethod
     def log(level,message,logfile=str(),verbose=True):
-        logfile = "/var/gluster/pi/dogsitter.log"
+        logfile = "/var/gluster/logs/dogsitter.log"
         comm = re.search("(WARN|INFO|ERROR)", str(level), re.M)
         try:
             handler = logging.handlers.WatchedFileHandler(
@@ -130,7 +130,7 @@ class DistributedProcessing(object):
 
     def process(self):
 
-        os.chdir('/var/gluster/pi')
+        os.chdir('/var/gluster/capture')
     
         pngs = glob.glob("*.png")
         pngs.sort()

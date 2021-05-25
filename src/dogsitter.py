@@ -33,7 +33,7 @@ class Logging(object):
         comm = re.search("(WARN|INFO|ERROR)", str(level), re.M)
         try:
             handler = logging.handlers.WatchedFileHandler(
-                os.environ.get("LOGFILE","/home/pi/.dogsitter/logs/dogsitter.log")
+                os.environ.get("LOGFILE","/var/gluster/logs/dogsitter.log")
             )
             formatter = logging.Formatter(logging.BASIC_FORMAT)
             handler.setFormatter(formatter)
@@ -59,7 +59,7 @@ class Logging(object):
             if verbose or str(level) == 'ERROR':
                 print("(" + str(level) + ") "
                     + str(time.asctime(time.localtime(time.time()))
-                    + " - ImageCapture - "
+                    + " - DogSitter - "
                     + str(message)))
         except IOError as eIOError:
             if re.search('\[Errno 13\] Permission denied:', str(eIOError), re.M | re.I):
@@ -90,7 +90,7 @@ class Mail(object):
                 message = MIMEMultipart()
                 message['Body'] = body
                 message['Subject'] = subject
-                message.attach(MIMEImage(open("/home/pi/.dogsitter/images/capture"
+                message.attach(MIMEImage(open("/var/gluster/capture/capture"
                     + str(MotionDetection.img_num())
                     + ".png","rb").read()))
                 mail = smtplib.SMTP('smtp.gmail.com',port)
@@ -210,10 +210,10 @@ class MotionDetection(object):
     @staticmethod
     def img_num():
         img_list = []
-        os.chdir("/home/pi/.dogsitter/images")
-        if not FileOpts.file_exists('/home/pi/.dogsitter/images/capture1.png'):
+        os.chdir("/var/gluster/capture")
+        if not FileOpts.file_exists('/var/gluster/capture/capture1.png'):
             Logging.log("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
-            FileOpts.create_file('/home/pi/.dogsitter/images/capture1.png')
+            FileOpts.create_file('/var/gluster/capture/capture1.png')
         for file_name in glob.glob("*.png"):
             num = re.search("(capture)(\d+)(\.png)", file_name, re.M | re.I)
             img_list.append(int(num.group(2)))
@@ -227,11 +227,11 @@ class MotionDetection(object):
     def take_picture(frame):
 
         capture = 'capture' + str(MotionDetection.img_num() + 1) + '.png'
-        picture_name = '/home/pi/.dogsitter/images/' + capture 
+        picture_name = '/var/gluster/capture/' + capture 
 
         image = Image.fromarray(frame)
         image.save(picture_name)
-        MotionDetection.copyfiles(picture_name,'/var/gluster/pi/'+capture)
+        #MotionDetection.copyfiles(picture_name,'/var/gluster/pi/'+capture)
 
     @staticmethod
     def start_thread(proc,*args):
@@ -335,7 +335,7 @@ class Server(MotionDetection):
             if 'Address already in use' in eSock:
                 Logging.log("ERROR", "(Server.__init__) - eSock error e => "
                     + str(eSock))
-                os.system('/usr/bin/sudo /sbin/reboot')
+                #os.system('/usr/bin/sudo /sbin/reboot')
 
     def handle_incoming_message(self,*data):
         for(sock,queue) in data:
@@ -390,8 +390,8 @@ if __name__ == '__main__':
         help='E-mail port defaults to port 587')
 
     parser.add_option('-l', '--log-file',
-        dest='logfile', default='/var/log/motiondetection.log',
-        help='Log file defaults to /var/log/motiondetection.log.')
+        dest='logfile', default='/var/gluster/logs/dogsitter.log',
+        help='Log file defaults to /var/gluster/logs/dogsitter.log.')
 
     parser.add_option('-D', '--disable-email',
         dest='disable_email', action='store_true', default=False,

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [[ -z $(sudo mount -v /dev/mmcblk0p1 2> /dev/null) ]] ; then
+    echo 'Mounting /dev/mmcblk0p1 on /boot' ;
+    sudo mount /dev/mmcblk0p1 /boot ;
+fi

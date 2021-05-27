@@ -31,9 +31,15 @@ create the videos volume
 gluster volume create videos replica 4 pi1:/export/videos pi2:/export/videos pi3:/export/videos pi4:/export/videos force
 ```
 
+create the mail volume
+```
+sudo gluster vol create mail replica 4 transport tcp pi1:/export/mail pi2:/export/mail pi3:/export/mail pi4:/export/mail force
+```
+
 start the volumes 
 ```
 gluste rvol start logs
+gluste rvol start mail
 gluste rvol start videos
 gluste rvol start capture
 ```

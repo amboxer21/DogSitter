@@ -109,7 +109,7 @@ class DistributedProcessing(object):
             try:
 
                 client = Client(self.ipaddr,self.port)
-                client.send_message('start_recording')
+                client.send_message('start_recording:'+self.lock_id)
 
                 Logging.log("INFO","(DistributedProcessing.process_image_with_tensorflow) - "
                     + " Sent 'start_recording' string to "

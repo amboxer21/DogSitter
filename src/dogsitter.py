@@ -153,17 +153,19 @@ class FileOpts(object):
 
 class MotionDetection(object):
 
-    verbose = False
-
     delta_count    = None
     colored_frame  = None
     camera_object  = None
     current_frame  = None
     previous_frame = None
 
+    verbose = False
+    lock    = multiprocessing.Lock()
+
     def __init__(self,config_dict={}):
 
         self.tracker           = 0
+        self.frame_count       = 0
         self.count             = 60
 
         self.ip                = config_dict[0]['ip'][1]
@@ -224,10 +226,10 @@ class MotionDetection(object):
         copyfile(filename,linkname)
     
     @staticmethod
-    def take_picture(frame):
+    def take_picture(frame,path='/var/gluster/capture/',tag=str()):
 
         capture = 'capture' + str(MotionDetection.img_num() + 1) + '.png'
-        picture_name = '/var/gluster/capture/' + capture 
+        picture_name = path + capture + tag
 
         image = Image.fromarray(frame)
         image.save(picture_name)
@@ -261,8 +263,6 @@ class MotionDetection(object):
         cls.current_frame = cv2.GaussianBlur(cls.current_frame, (21, 21), 0)
 
     def capture(self,queue=None,bbox=None,label=None,conf=None):
-
-        #MotionDetection.lock.acquire()
 
         Logging.log("INFO", "(MotionDetection.capture) - Lock acquired!",self.verbose)
         Logging.log("INFO", "(MotionDetection.capture) - MotionDetection system initialized!", self.verbose)
@@ -306,9 +306,16 @@ class MotionDetection(object):
                             'Motion Detected','MotionDetection.py detected movement!')
 
                         if not queue is None and not queue.empty():
-                            Logging.log("INFO", "(MotionDetection.capture) - queue.get() "
-                                + str(queue.get()), self.verbose)
-                            # Start recording video here or push it to another pi to do standalone image to video processing
+                            res = re.search('(start_recording)(:)([\d\w]+)', str(message), re.I)
+                            if not res is None:
+                                Logging.log("INFO", "(MotionDetection.capture) - queue.get() "
+                                    + str(queue.get()), self.verbose)
+                                MotionDetection.lock.acquire()
+                                self.frame_count += 1
+                                if not self.frame_count == 120:
+                                    print(int(self.frame_count))
+                                #MotionDetection.take_picture(MotionDetection.camera_object.read()[1],'/var/gluster/videos/',self.lock_id)
+                                MotionDetection.lock.release()
 
             elif MotionDetection.delta_count < self.motion_thresh_min:
                 self.count  += 1

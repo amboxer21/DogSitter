@@ -4,7 +4,7 @@
 
 SLEEPSECS=4
 BINDIR='/usr/local/bin'
-LOGFILE='/home/pi/.dogsitter/logs/dogsitter.log'
+LOGFILE='/var/gluster/logs/dogsitter.log'
 PYTHON='/usr/bin/python3.7'
 SUDO='/usr/bin/sudo'
 

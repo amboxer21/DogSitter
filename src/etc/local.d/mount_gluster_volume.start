@@ -14,6 +14,19 @@ if [[ ! -e $(mount | awk '/pi2:logs/{print $3}') ]] ; then
 else
     echo "[WARN] Gluster volume logs already mounted." >> $logfile ;
 fi
+  
+if [[ ! -e /var/gluster/mail ]] ; then
+    mkdir -p /var/gluster/mail ;
+    echo "[INFO] Creating gluster mount point /var/gluster/mail" >> $logfile ;
+else
+    echo "[WARN] Mountpoint /var/gluster/mail already exists." >> $logfile ;
+fi
+
+if [[ ! -e $(mount | awk '/pi2:mail/{print $3}') ]] ; then
+    /usr/bin/sudo /bin/mount -t glusterfs -o log-file=/var/log/gluster.log pi2:mail /var/gluster/mail 2> /dev/null ;
+else
+    echo "[WARN] Gluster volume mail already mounted." >> $logfile ;
+fi
 
 if [[ ! -e /var/gluster/videos ]] ; then
     mkdir -p /var/gluster/videos ;

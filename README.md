@@ -2,7 +2,7 @@
 
 [ **OVERVIEW** ]
 
-This app was made to record my neighbor's dogs while their dogs are shitting while walking their dogs. This is achieved by using OpenCV and Tensorflow on a Raspberry Pi cluster. 
+This app was made to record my neighbor's dogs while their dogs are shitting when out walking their dogs. This is achieved by using OpenCV and Tensorflow on a Raspberry Pi cluster. 
 
 I have four overclocked Raspberry Pi's that all run Gentoo Linux. Three of these Pi's are 4b's and one is a 3b which will eventually be swapped out for another 4b.
 

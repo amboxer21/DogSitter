@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo chmod -R -s /var/tmp/portage/.distcc
+sudo chown -R portage:pi  /var/tmp/portage/.distcc

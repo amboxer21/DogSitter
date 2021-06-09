@@ -9,7 +9,7 @@ PYTHON='/usr/bin/python3.7'
 SUDO='/usr/bin/sudo'
 
 CFG="/etc/dogsitter/dogsitter.cfg"
-EXECUTABLE="/usr/local/bin/realtime_common_object_detection.py"
+EXECUTABLE="/usr/local/bin/dogsitter.py"
 
 ip=$(awk -F= '/^ip=/{print $2}' ${CFG})
 fps=$(awk -F= '/^fps=/{print $2}' ${CFG})
@@ -43,33 +43,33 @@ echo "${command}" > $LOGFILE ;
 message() {
     echo "$1" >&2 ;
     if [[ -n "$SYSLOG" ]] ; then
-        logger -p "${SYSLOG}.warn" -t realtime_common_object_detection.py[$$] "$1" ;
+        logger -p "${SYSLOG}.warn" -t dogsitter.py[$$] "$1" ;
     fi
     if [[ -n "$LOGFILE" ]] ; then
-        echo "realtime_common_object_detection.py[$$]: $1" >> "$LOGFILE" ;
+        echo "dogsitter.py[$$]: $1" >> "$LOGFILE" ;
     fi
 }
 
-run_realtime_common_object_detectiond() {
+run_dogsitterd() {
     while true ; do
         cd $BINDIR ;
 	$SUDO $PYTHON $EXECUTABLE $command;
         EXITSTATUS=$? ;
-        message "realtime_common_object_detection.py ended with exit status $EXITSTATUS" ;
+        message "dogsitter.py ended with exit status $EXITSTATUS" ;
         if [[ "${EXITSTATUS}" = "0" ]] ; then
             # Properly shutdown....
-            message "realtime_common_object_detection.py shutdown normally." ;
+            message "dogsitter.py shutdown normally." ;
             exit 0 ;
         #else
             #if [[ -n "${email}" ]] ; then
-            #    echo "realtime_common_object_detection.py on $MACHINE died with exit status $EXITSTATUS.  Might want to take a peek." | \
-            #    sendmail -s "realtime_common_object_detection.py Died" $email | \
+            #    echo "dogsitter.py on $MACHINE died with exit status $EXITSTATUS.  Might want to take a peek." | \
+            #    sendmail -s "dogsitter.py Died" $email | \
             #    message "Exited on signal $EXITSTATUS" ;
             #fi
         fi
-        message "Automatically restarting realtime_common_object_detection.py." ;
+        message "Automatically restarting dogsitter.py." ;
         sleep $SLEEPSECS ;
     done
 }
 
-run_realtime_common_object_detectiond &
+run_dogsitterd &

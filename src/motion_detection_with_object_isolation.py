@@ -19,11 +19,12 @@ class RTCObjectDetection(object):
 
     def __init__(self,config_dict={}):
 
-        self.camera   = config_dict['camera']
-        self.object   = config_dict['object']
-        self.logfile  = config_dict['logfile']
-        self.verbose  = config_dict['verbose']
-        self.filename = config_dict['filename']
+        self.camera     = config_dict['camera']
+        self.object     = config_dict['object']
+        self.logfile    = config_dict['logfile']
+        self.verbose    = config_dict['verbose']
+        self.filename   = config_dict['filename']
+        self.disable_ui = config_dict['disable_ui']
 
         self.capture = cv2.VideoCapture(self.camera)
         self.capture.set(3,1080)
@@ -110,7 +111,8 @@ class RTCObjectDetection(object):
 
                 RTCObjectDetection.label = None
         
-            cv2.imshow('output', frame)
+            if not self.disable_ui:
+                cv2.imshow('output', frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.capture.release()
@@ -142,12 +144,16 @@ if __name__ == '__main__':
         dest='filename', default='/home/anthony/video.avi',
         help='Filename defaults to /home/anthony/video.avi.')
 
+    parser.add_option('-d', '--disable-ui',
+        dest='disable_ui', action='store_true', default=False,
+        help="This option disables the UI and only pushes output to the console.")
+
     (options, args) = parser.parse_args()
 
     config_dict = {
-        'camera': options.camera,
         'object': options.object, 'verbose': options.verbose,
         'logfile': options.logfile, 'filename': options.filename,
+        'camera': options.camera, 'disable_ui': options.disable_ui,
     }
 
     rtc_object_detection = RTCObjectDetection(config_dict)

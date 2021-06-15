@@ -114,10 +114,10 @@ class RTCObjectDetection(object):
             if not self.disable_ui:
                 cv2.imshow('output', frame)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                self.capture.release()
-                self.video_writer.release()
-                break
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    self.capture.release()
+                    self.video_writer.release()
+                    break
 
 
 if __name__ == '__main__':

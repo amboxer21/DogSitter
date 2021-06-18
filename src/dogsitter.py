@@ -210,12 +210,12 @@ class MotionDetection(object):
                 time.sleep(1)
 
     @staticmethod
-    def img_num():
+    def img_num(path='/var/gluster/capture/'):
         img_list = []
-        os.chdir("/var/gluster/capture")
-        if not FileOpts.file_exists('/var/gluster/capture/capture1.png'):
+        os.chdir(path)
+        if not FileOpts.file_exists(path+'capture1.png'):
             Logging.log("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
-            FileOpts.create_file('/var/gluster/capture/capture1.png')
+            FileOpts.create_file(path+'capture1.png')
         for file_name in glob.glob("*.png"):
             num = re.search("(capture)(\d+)(\.png)", file_name, re.M | re.I)
             img_list.append(int(num.group(2)))
@@ -224,16 +224,26 @@ class MotionDetection(object):
     @staticmethod
     def copyfiles(filename,linkname):
         copyfile(filename,linkname)
+
+    @staticmethod
+    def mv(filename,linkname):
+        os.rename(filename,linkname)
     
     @staticmethod
-    def take_picture(frame,path='/var/gluster/capture/',tag=str()):
+    def take_picture(frame,path='/var/gluster/capture/'):
 
-        capture = 'capture' + str(MotionDetection.img_num() + 1) + '.png'
-        picture_name = path + capture + tag
+        capture = 'capture' + str(MotionDetection.img_num(path) + 1) + '.png'
+        picture_name = path + capture 
 
         image = Image.fromarray(frame)
         image.save(picture_name)
-        #MotionDetection.copyfiles(picture_name,'/var/gluster/pi/'+capture)
+
+    def create_recording_images(self,message,frame):
+        for number in range(120):
+            print(int(number))
+            time.sleep(0.5)
+            MotionDetection.take_picture(frame,'/var/gluster/videos/')
+            #MotionDetection.take_picture(MotionDetection.camera_object.read()[1],'/var/gluster/videos/',self.lock_id)
 
     @staticmethod
     def start_thread(proc,*args):
@@ -287,6 +297,21 @@ class MotionDetection(object):
 
             MotionDetection.calculate_delta()
 
+            # If an image_processor process finds your pair then istart
+            # taking pictures that the video renderer will convert into video.
+            if not queue is None and not queue.empty():
+
+                message = queue.get()
+                regex   = '(\d+\.\d+\.\d+\.\d+)(:)(start_recording)(:)([\d\w]+)'
+                result  = re.search(regex, str(message), re.I)
+
+                if not result is None:
+                    Logging.log("INFO", "(MotionDetection.capture) - queue message: "
+                        + str(message), self.verbose)
+                    MotionDetection.lock.acquire()
+                    #self.create_recording_images(message,MotionDetection.camera_object.read()[1])
+                    MotionDetection.lock.release()
+
             # The tracker is each time the system detecs movement and the count is each time the system does not detect movement.
             if MotionDetection.delta_count > int(self.delta_thresh_min) and MotionDetection.delta_count < int(self.delta_thresh_max):
                 self.tracker += 1
@@ -304,18 +329,6 @@ class MotionDetection(object):
                         MotionDetection.take_picture(MotionDetection.camera_object.read()[1])
                         MotionDetection.start_thread(Mail.send,self.email,self.email,self.password,self.email_port,
                             'Motion Detected','MotionDetection.py detected movement!')
-
-                        if not queue is None and not queue.empty():
-                            res = re.search('(start_recording)(:)([\d\w]+)', str(message), re.I)
-                            if not res is None:
-                                Logging.log("INFO", "(MotionDetection.capture) - queue.get() "
-                                    + str(queue.get()), self.verbose)
-                                MotionDetection.lock.acquire()
-                                self.frame_count += 1
-                                if not self.frame_count == 120:
-                                    print(int(self.frame_count))
-                                #MotionDetection.take_picture(MotionDetection.camera_object.read()[1],'/var/gluster/videos/',self.lock_id)
-                                MotionDetection.lock.release()
 
             elif MotionDetection.delta_count < self.motion_thresh_min:
                 self.count  += 1
@@ -350,7 +363,7 @@ class Server(MotionDetection):
             if('start_recording' in str(message)):
                 Logging.log("INFO",
                     "(Server.handle_incoming_message) - Starting to record! -> (start_recording)")
-                self.queue.put('start_recording')
+                self.queue.put(message)
             else:
                 pass
             sock.close()

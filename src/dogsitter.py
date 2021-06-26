@@ -195,7 +195,7 @@ class MotionDetection(object):
             sys.exit(0)
 
     @staticmethod
-    def waitforcamera():
+    def wait_for_camera():
         pushed = False
         found  = False
         while not found:
@@ -210,14 +210,17 @@ class MotionDetection(object):
                 time.sleep(1)
 
     @staticmethod
-    def img_num(path='/var/gluster/capture/'):
-        img_list = []
+    def img_num(path='/var/gluster/capture/',img_list=[]):
+
         os.chdir(path)
+
         if not FileOpts.file_exists(path+'capture1.png'):
             Logging.log("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
             FileOpts.create_file(path+'capture1.png')
         for file_name in glob.glob("*.png"):
             num = re.search("(capture)(\d+)(\.png)", file_name, re.M | re.I)
+            if num is None:
+                num = re.search("(capture)(\d+)_([\d\w]+)_(\.png)", file_name, re.M | re.I)
             img_list.append(int(num.group(2)))
         return max(img_list)
 
@@ -230,20 +233,22 @@ class MotionDetection(object):
         os.rename(filename,linkname)
     
     @staticmethod
-    def take_picture(frame,path='/var/gluster/capture/'):
+    def take_picture(frame,path='/var/gluster/capture/',tag=None):
 
         capture = 'capture' + str(MotionDetection.img_num(path) + 1) + '.png'
+        if not tag is None:
+            capture = 'capture' + str(MotionDetection.img_num(path) + 1) + '_' + tag + '_.png' 
+
         picture_name = path + capture 
 
         image = Image.fromarray(frame)
         image.save(picture_name)
 
-    def create_recording_images(self,message,frame):
+    def create_recording_images(self,frame,tag):
+        video_path='/var/gluster/videos/'
         for number in range(120):
-            print(int(number))
-            time.sleep(0.5)
-            MotionDetection.take_picture(frame,'/var/gluster/videos/')
-            #MotionDetection.take_picture(MotionDetection.camera_object.read()[1],'/var/gluster/videos/',self.lock_id)
+            time.sleep(0.4)
+            MotionDetection.take_picture(frame,video_path,tag)
 
     @staticmethod
     def start_thread(proc,*args):
@@ -277,8 +282,8 @@ class MotionDetection(object):
         Logging.log("INFO", "(MotionDetection.capture) - Lock acquired!",self.verbose)
         Logging.log("INFO", "(MotionDetection.capture) - MotionDetection system initialized!", self.verbose)
 
-        #MotionDetection.camera_object = cv2.VideoCapture(self.cam_location)
-        MotionDetection.camera_object = cv2.VideoCapture(0)
+        #MotionDetection.camera_object = cv2.VideoCapture(0)
+        MotionDetection.camera_object = cv2.VideoCapture(self.cam_location)
         MotionDetection.camera_object.set(3, 320)
         MotionDetection.camera_object.set(4, 320)
 
@@ -306,10 +311,15 @@ class MotionDetection(object):
                 result  = re.search(regex, str(message), re.I)
 
                 if not result is None:
+
+                    tag    = result.group(5)
+                    ipaddr = result.group(1)
+
                     Logging.log("INFO", "(MotionDetection.capture) - queue message: "
                         + str(message), self.verbose)
+
                     MotionDetection.lock.acquire()
-                    #self.create_recording_images(message,MotionDetection.camera_object.read()[1])
+                    self.create_recording_images(MotionDetection.camera_object.read()[1],tag)
                     MotionDetection.lock.release()
 
             # The tracker is each time the system detecs movement and the count is each time the system does not detect movement.
@@ -521,6 +531,6 @@ if __name__ == '__main__':
     }, []]
 
     motiondetection = MotionDetection(config_dict)
-    motiondetection.waitforcamera()
+    motiondetection.wait_for_camera()
 
     Server(multiprocessing.Queue()).server_main()

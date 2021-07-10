@@ -38,7 +38,7 @@ class RTCObjectDetection(object):
         )
         
         if self.verbose:
-            print('[INFO] (RTCObjectDetection.__init__) - fps => '+str(self.fps))
+            Logging.log('INFO', '(RTCObjectDetection.__init__) - fps => '+str(self.fps))
 
     @staticmethod
     def detect_common_objects(frame, worker_count=4):
@@ -48,12 +48,6 @@ class RTCObjectDetection(object):
                 RTCObjectDetection.bbox, RTCObjectDetection.label, RTCObjectDetection.conf = thread.result()
         except Exception as eStartThread:
             print("[ERROR] (RTCObjectDetection.detect_common_objects) - Threading exception eStartThread => " + str(eStartThread))
-
-    def find_index_of_label(self,labels=[],label=str()):
-        for index in range(0,len(labels)):
-            if label in labels[index]:
-                return int(index)
-        return 0
 
     def main(self):
 
@@ -79,12 +73,12 @@ class RTCObjectDetection(object):
                 index = self.find_index_of_label(RTCObjectDetection.label,self.object)
 
                 if self.verbose:
-                    print('[INFO] (RTCObjectDetection.main) - All labels: '+str(RTCObjectDetection.label))
+                    Logging.log('INFO', '(RTCObjectDetection.main) - All labels: '+str(RTCObjectDetection.label))
 
                 if self.object in RTCObjectDetection.label:
 
                     if self.verbose:
-                        print('[INFO] (RTCObjectDetection.main) - Object label: '+str(RTCObjectDetection.label))
+                        Logging.log('INFO', '(RTCObjectDetection.main) - Object label: '+str(RTCObjectDetection.label))
 
                     # Initialize original bbox if no value has been assigned yet
                     if o_bbox is None or not o_bbox:
@@ -100,13 +94,13 @@ class RTCObjectDetection(object):
 
                     try:
                         if (abs(n1-n2) > 50).any():
-                            print('[INFO] (RTCObjectDetection.main) - '+self.object+' movement detected!')
-                            print('[INFO] (RTCObjectDetection.main) - o_bbox numpy(n1) array => '+str(n1))
-                            print('[INFO] (RTCObjectDetection.main) - bbox numpy(n2) array   => '+str(n2))
+                            Logging.log('INFO', '(RTCObjectDetection.main) - '+self.object+' movement detected!')
+                            Logging.log('INFO', '(RTCObjectDetection.main) - o_bbox numpy(n1) array => '+str(n1))
+                            Logging.log('INFO', '(RTCObjectDetection.main) - bbox numpy(n2) array   => '+str(n2))
                             # If movement of desired(specified) object is detected re-init o_bbox's values
                             o_bbox = RTCObjectDetection.bbox[index]
                     except Exception as exception:
-                        print('[ERROR] (RTCObjectDetection.main) - Exception exception => '+str(exception))
+                        Logging.log('ERROR', '(RTCObjectDetection.main) - Exception exception => '+str(exception))
                         pass
 
                 RTCObjectDetection.label = None

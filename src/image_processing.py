@@ -3,6 +3,7 @@ import re
 import cv2
 import glob
 import time
+import shutil
 import socket
 import string
 import random
@@ -52,6 +53,8 @@ class Logging(object):
                     + str(time.asctime(time.localtime(time.time()))
                     + " - DogSitter - "
                     + str(message)))
+            handler.close()
+            root.removeHandler(handler)
         except IOError as eIOError:
             if re.search('\[Errno 13\] Permission denied:', str(eIOError), re.M | re.I):
                 print("(ERROR) DogSitter - Must be sudo to run DogSitter!")
@@ -94,15 +97,24 @@ class Client(object):
 
 class DistributedProcessing(object):
 
+    image_path = '/var/gluster/capture/'
+
     def __init__(self,config_dict={}):
+
+        self.pngs    = []
 
         self.ipaddr  = config_dict['ip']
         self.port    = config_dict['server_port']
-        self.lock_id = DistributedProcessing.create_lock(14) 
+        self.lock_id = DistributedProcessing.create_lock(4) 
 
-    def process_image_with_tensorflow(self,image,pair=('Person','Dog'),verbose=False):
+    def sorted(self,array,regex='(capture)(\d+)(.png)'):
+        numbers = sorted([int(r.group(2)) for r in [re.search(regex,a) for a in array]])
+        return ['capture'+str(n)+'.png' for n in numbers]
 
-        bbox, label, conf = cv.detect_common_objects(cv2.imread(image))
+    def process_image_with_tensorflow(self,tagged_image,pair=('Person','Dog'),verbose=False):
+
+        img = cv2.imread(DistributedProcessing.image_path+tagged_image)
+        bbox, label, conf = cv.detect_common_objects(img)
         
         if(pair[0] and pair[1]) in label:
 
@@ -122,30 +134,46 @@ class DistributedProcessing(object):
             Logging.log("INFO","(DistributedProcessing.process_image_with_tensorflow) - "
                 + pair[0] + " and "
                 + pair[1] + " found in image "
-                + image, verbose)
+                + tagged_image, verbose)
 
-            #os.system('speaker-test -tsine -f1000 -l1')
-        else:
-            os.remove(image) 
+    # This method removes tagged pngs from a list of pngs
+    # ['capture2_D4ff_.png','capture2.png','capture22.png','capture22_D4ff_.png']
+    # In the example above, 'capture2_D4ff_.png' and 'capture22_D4ff_.png' will be
+    # removed from the above list. That would leave us with ['capture2.png','capture22.png'].
+    def remove_tagged_pngs_from_pngs(self,pngs):
+        tagged_pngs = [r for r in [re.search('(capture\d+_[\d\w]+_.png)',png) for png in pngs] if r]
+        [pngs.remove(png.group()) for png in tagged_pngs]
 
     def process(self):
 
-        os.chdir('/var/gluster/capture')
+        os.chdir(DistributedProcessing.image_path)
     
-        pngs = glob.glob("*.png")
-        pngs.sort()
+        if not self.pngs:
+            self.pngs = glob.glob('capture[1-9]*.png')
 
-        for png in pngs[:3]:
+        self.remove_tagged_pngs_from_pngs(self.pngs)
 
-            locked_png = png + "." + self.lock_id
+        for png in self.pngs[:2]:
 
-            try:
-                if not 'capture1.png' in png:
-                    DistributedProcessing.mv(png,locked_png)
+            _png = re.search('(capture)(\d+)(.png)', png)
+
+            if not _png is None:
+
+                locked_png = _png.group(1)+_png.group(2)+'_'+self.lock_id+'_'+_png.group(3)
+
+                try:
+                    DistributedProcessing.mv(DistributedProcessing.image_path+png,DistributedProcessing.image_path+locked_png)
                     self.process_image_with_tensorflow(locked_png,('person','bottle'),True)
-            except Exception as exception:
-                Logging.log('ERROR','(DistributedProcessing.process) - Exception exception => '+str(exception),True)
-                continue
+                    Logging.log('INFO','(DistributedProcessing.process) - Processed image => '+str(DistributedProcessing.image_path+png))
+                except Exception as exception:
+                    Logging.log('ERROR','(DistributedProcessing.process) - Exception exception(1)('+png+') => '+str(exception),True)
+                    continue
+
+                self.pngs.remove(png)
+
+    @staticmethod
+    def copyfile(filename,linkname):
+        shutil.copyfile(filename,linkname)
 
     @staticmethod
     def mv(filename,linkname):
@@ -183,6 +211,7 @@ if __name__ == '__main__':
     dp    = DistributedProcessing(config_dict)
 
     while(True):
+        time.sleep(0.5)
         mutex.acquire()
         dp.process()
         mutex.release()

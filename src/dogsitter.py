@@ -15,6 +15,7 @@ import logging.handlers
 import cvlib as cv
 import numpy as np
 
+from os import path
 from shutil import copyfile
 from optparse import OptionParser
 
@@ -61,6 +62,8 @@ class Logging(object):
                     + str(time.asctime(time.localtime(time.time()))
                     + " - DogSitter - "
                     + str(message)))
+            handler.close()
+            root.removeHandler(handler)
         except IOError as eIOError:
             if re.search('\[Errno 13\] Permission denied:', str(eIOError), re.M | re.I):
                 print("(ERROR) DogSitter - Must be sudo to run DogSitter!")
@@ -159,8 +162,14 @@ class MotionDetection(object):
     current_frame  = None
     previous_frame = None
 
-    verbose = False
-    lock    = multiprocessing.Lock()
+    SIZE           = (320,320)
+    VIDEO_NAME     = 'capture.avi'
+
+    video_path     = '/var/gluster/videos/'
+    image_path     = '/var/gluster/capture/'
+
+    verbose        = False
+    lock           = multiprocessing.Lock()
 
     def __init__(self,config_dict={}):
 
@@ -188,6 +197,11 @@ class MotionDetection(object):
         Mail.__disabled__ = self.disable_email
         MotionDetection.verbose = self.verbose
 
+        fourcc            = cv2.VideoWriter_fourcc(*'mp4v')
+        self.video_writer = cv2.VideoWriter(
+            MotionDetection.video_path+MotionDetection.VIDEO_NAME, fourcc, 1, MotionDetection.SIZE
+        )
+
         if not self.disable_email and (self.email is None or self.password is None):
             Logging.log("ERROR",
                 "(MotionDetection.__init__) - Both E-mail and password are required!")
@@ -210,19 +224,18 @@ class MotionDetection(object):
                 time.sleep(1)
 
     @staticmethod
-    def img_num(path='/var/gluster/capture/',img_list=[]):
+    def img_num(img_list=[]):
 
-        os.chdir(path)
+        if not FileOpts.file_exists(MotionDetection.image_path+'capture0.png'):
+            Logging.log("INFO", "(MotionDetection.img_num) - Creating capture0.png.",MotionDetection.verbose)
+            FileOpts.create_file(MotionDetection.image_path+'capture0.png')
 
-        if not FileOpts.file_exists(path+'capture1.png'):
-            Logging.log("INFO", "(MotionDetection.img_num) - Creating capture1.png.",MotionDetection.verbose)
-            FileOpts.create_file(path+'capture1.png')
-        for file_name in glob.glob("*.png"):
+        for file_name in glob.glob(MotionDetection.image_path+'capture[0-9]*.png'):
             num = re.search("(capture)(\d+)(\.png)", file_name, re.M | re.I)
             if num is None:
-                num = re.search("(capture)(\d+)_([\d\w]+)_(\.png)", file_name, re.M | re.I)
+                num = re.search("(capture)(\d+)_([\d\w]+)_(\.png)", file_name, re.M|re.I)
             img_list.append(int(num.group(2)))
-        return max(img_list)
+        return max(sorted(img_list))
 
     @staticmethod
     def copyfiles(filename,linkname):
@@ -233,22 +246,29 @@ class MotionDetection(object):
         os.rename(filename,linkname)
     
     @staticmethod
-    def take_picture(frame,path='/var/gluster/capture/',tag=None):
+    def take_picture(frame):
 
-        capture = 'capture' + str(MotionDetection.img_num(path) + 1) + '.png'
-        if not tag is None:
-            capture = 'capture' + str(MotionDetection.img_num(path) + 1) + '_' + tag + '_.png' 
+        capture = 'capture' + str(MotionDetection.img_num() + 1) + '.png'
 
-        picture_name = path + capture 
+        picture_name = MotionDetection.image_path + capture 
 
-        image = Image.fromarray(frame)
-        image.save(picture_name)
+        try:
+            Logging.log('INFO','(MotionDetection.take_picture) - Taking picture => '+str(picture_name))
+            image = Image.fromarray(frame)
+            image.save(picture_name)
+        except Exception as exception:
+            Logging.log('ERROR','(MotionDetection.take_picture) - Exception picture_name => '+str(picture_name))
+            Logging.log('ERROR','(MotionDetection.take_picture) - Exception exception => '+str(exception))
 
-    def create_recording_images(self,frame,tag):
-        video_path='/var/gluster/videos/'
+    def create_recording(self,frame,tag):
+        os.chdir(MotionDetection.video_path)
         for number in range(120):
-            time.sleep(0.4)
-            MotionDetection.take_picture(frame,video_path,tag)
+            self.video_writer.write(frame)
+        self.video_writer.release()
+        if path.exists(MotionDetection.video_path+'capture.avi'):
+            MotionDetection.mv(
+                MotionDetection.video_path+'capture.avi',MotionDetection.video_path+'capture_'+tag+'_.avi'
+            )
 
     @staticmethod
     def start_thread(proc,*args):
@@ -307,19 +327,20 @@ class MotionDetection(object):
             if not queue is None and not queue.empty():
 
                 message = queue.get()
-                regex   = '(\d+\.\d+\.\d+\.\d+)(:)(start_recording)(:)([\d\w]+)'
+                #regex   = '(\d+\.\d+\.\d+\.\d+)(:)(start_recording)(:)([\d\w]+)'
+                regex   = '(start_recording)(:)([\d\w]+)'
                 result  = re.search(regex, str(message), re.I)
 
                 if not result is None:
 
-                    tag    = result.group(5)
-                    ipaddr = result.group(1)
+                    #tag = result.group(5)
+                    tag = result.group(3)
 
                     Logging.log("INFO", "(MotionDetection.capture) - queue message: "
                         + str(message), self.verbose)
 
                     MotionDetection.lock.acquire()
-                    self.create_recording_images(MotionDetection.camera_object.read()[1],tag)
+                    self.create_recording(MotionDetection.camera_object.read()[1],tag)
                     MotionDetection.lock.release()
 
             # The tracker is each time the system detecs movement and the count is each time the system does not detect movement.

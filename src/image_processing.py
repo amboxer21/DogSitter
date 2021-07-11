@@ -107,10 +107,6 @@ class DistributedProcessing(object):
         self.port    = config_dict['server_port']
         self.lock_id = DistributedProcessing.create_lock(4) 
 
-    def sorted(self,array,regex='(capture)(\d+)(.png)'):
-        numbers = sorted([int(r.group(2)) for r in [re.search(regex,a) for a in array]])
-        return ['capture'+str(n)+'.png' for n in numbers]
-
     def process_image_with_tensorflow(self,tagged_image,pair=('Person','Dog'),verbose=False):
 
         img = cv2.imread(DistributedProcessing.image_path+tagged_image)
@@ -141,7 +137,9 @@ class DistributedProcessing(object):
     # In the example above, 'capture2_D4ff_.png' and 'capture22_D4ff_.png' will be
     # removed from the above list. That would leave us with ['capture2.png','capture22.png'].
     def remove_tagged_pngs_from_pngs(self,pngs):
+        # Grabs tagged pngs only
         tagged_pngs = [r for r in [re.search('(capture\d+_[\d\w]+_.png)',png) for png in pngs] if r]
+        # removed tagged pngs from the original list
         [pngs.remove(png.group()) for png in tagged_pngs]
 
     def process(self):
@@ -149,7 +147,7 @@ class DistributedProcessing(object):
         os.chdir(DistributedProcessing.image_path)
     
         if not self.pngs:
-            self.pngs = glob.glob('capture[1-9]*.png')
+            self.pngs = glob.glob(DistributedProcessing.image_path+'capture[1-9]*.png')
 
         self.remove_tagged_pngs_from_pngs(self.pngs)
 

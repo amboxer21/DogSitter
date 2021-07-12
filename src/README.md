@@ -26,6 +26,11 @@ anthony@ghost ~/Documents/Python/Dogsitter/images/dataset $
 
 ![51308263204_75a4d3595e.jpg](https://user-images.githubusercontent.com/2100258/125368473-4c2b7900-e348-11eb-8ba3-3ab2ee759755.jpg)
 
+#### Remove the image after confirming that a dog is actualy in the picture
+```javascript
+anthony@ghost ~/Documents/Python/Dogsitter/images/dataset $ rm 51308263204_75a4d3595e.jpg
+anthony@ghost ~/Documents/Python/Dogsitter/images/dataset $
+```
 
 #### Move the images to the negatives folder
 ```javascript

@@ -40,6 +40,11 @@ mv: overwrite 'negatives/51307501456_00b22713ea.jpg'? n
 anthony@ghost ~/Documents/Python/Dogsitter/images/dataset $
 ```
 
-
+#### Populate bg.txt file
+After you have all of the images you want/need, populate the bg.txt file with the following command:
+```javascript
+anthony@ghost ~/Documents/Python/Dogsitter/images/dataset $ find negatives/*.jpg >> bg.txt 
+anthony@ghost ~/Documents/Python/Dogsitter/images/dataset $
+```
 
 

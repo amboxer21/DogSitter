@@ -38,7 +38,7 @@ class FlickrImageSearch(object):
     def flickr_photos(self):
 
         flickr  = flickrapi.FlickrAPI(self.key, self.secret, format='parsed-json')
-        extras  = 'url_m,url_l,url_t,url_n,url_o,url_sq,url_s,url_q,url_z,url_c'
+        extras  = 'url_m,url_l,url_n,url_o,url_sq,url_s,url_q,url_t,url_z,url_c'
         types   = [i for i in extras.split(",")]
         results = flickr.photos.search(text=self.query, per_page=self.count, extras=extras)
 

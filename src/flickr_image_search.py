@@ -38,7 +38,8 @@ class FlickrImageSearch(object):
     def flickr_photos(self):
 
         flickr  = flickrapi.FlickrAPI(self.key, self.secret, format='parsed-json')
-        extras  = 'url_sq,url_t,url_s,url_q,url_m,url_n,url_z,url_c,url_l,url_o'
+        extras  = 'url_m,url_l,url_t,url_n,url_o,url_sq,url_s,url_q,url_z,url_c'
+        types   = [i for i in extras.split(",")]
         results = flickr.photos.search(text=self.query, per_page=self.count, extras=extras)
 
         for url in results['photos']['photo']:
@@ -46,10 +47,19 @@ class FlickrImageSearch(object):
                 print('{ERROR] (FlickrImageSearch.flickr_photos) - Generating url links and downloading images are mutally exclusive features.')
                 sys.exit(0)
             elif self.download:
-                self.download_image(url['url_m'])
+                for u_type in types:
+                    try:
+                        self.download_image(url['url_m'])
+                        break
+                    except KeyError:
+                        pass
             elif self.generate:
-                #print("curl '"+url['url_m']+"'")
-                print(url['url_m'])
+                for u_type in types:
+                    try:
+                        print(url[u_type])
+                        break
+                    except KeyError:
+                        pass
 
     def download_image(self,url):
 

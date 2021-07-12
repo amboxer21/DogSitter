@@ -22,9 +22,6 @@ class Credentials(object):
                 if secret is not None:
                     CREDENTIALS['SECRET'] = str(secret.group(2))
 
-        if (CREDENTIALS['KEY'] and CREDENTIALS['SECRET']) is None:
-            print('Both Flickr key and Flickr secret are required to use this program.')
-            sys.exit(0)
         return CREDENTIALS
 
 class FlickrImageSearch(object):
@@ -105,10 +102,20 @@ if __name__ == '__main__':
     credentials = Credentials.flickr()
 
     if not options.key:
-        options.key = credentials['KEY']
+        try:
+            options.key = credentials['KEY']
+        except KeyError:
+            options.key = None
     
     if not options.secret:
-        options.secret = credentials['SECRET'] 
+        try:
+            options.secret = credentials['SECRET'] 
+        except KeyError:
+            options.secret = None
+
+    if options.key is None and options.secret is None:
+        print('[ERROR] Both Flickr key and Flickr secret are required to use this program.')
+        sys.exit(0)
         
     config_dict = {
         'key': options.key,

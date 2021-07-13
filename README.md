@@ -13,3 +13,9 @@ The main Raspberry Pi 4b is overclocked @ 2Ghz and runs the motiondetection soft
 Once a dog is detected in the shitting position, the system starts taking pictures for 120 seconds. This is where the cluster comes in. They each have their own tasks while collectively performing a single task.
 
 The single collective task is to process 3 images at a time. Will finish at a later time.
+
+
+#### Compiling OpenCV from source
+```javascript
+cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=/usr/local -DOPENCV_GENERATE_PKGCONFIG=ON -DBUILD_EXAMPLES=ON -DWITH_EIGEN=ON -DWITH_FFMPEG=ON -DWITH_GSTREAMER=ON -DWITH_GTK=ON -DWITH_JPEG=ON -DWITH_LAPACK=ON -DWITH_OPENMP=ON -DWITH_PNG=ON -DINSTALL_PYTHON_EXAMPLES=ON -DINSTALL_C_EXAMPLES=OFF -DWITH_V4L=ON -DOPENCV_EXTRA_MODULES_PATH=/home/anthony/Documents/Source/opencv/opencv_contrib/modules ..
+```

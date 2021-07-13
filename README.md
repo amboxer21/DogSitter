@@ -17,5 +17,10 @@ The single collective task is to process 3 images at a time. Will finish at a la
 
 #### Compiling OpenCV from source
 ```javascript
-cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=/usr/local -DOPENCV_GENERATE_PKGCONFIG=ON -DBUILD_EXAMPLES=ON -DWITH_EIGEN=ON -DWITH_FFMPEG=ON -DWITH_GSTREAMER=ON -DWITH_GTK=ON -DWITH_JPEG=ON -DWITH_LAPACK=ON -DWITH_OPENMP=ON -DWITH_PNG=ON -DINSTALL_PYTHON_EXAMPLES=ON -DINSTALL_C_EXAMPLES=OFF -DWITH_V4L=ON -DOPENCV_EXTRA_MODULES_PATH=/home/anthony/Documents/Source/opencv/opencv_contrib/modules ..
+cmake -DCMAKE_EXE_LINKER_FLAGS=-lcblas -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=/usr/local -DOPENCV_GENERATE_PKGCONFIG=ON -DBUILD_EXAMPLES=OFF -DWITH_EIGEN=ON -DWITH_FFMPEG=ON -DWITH_GSTREAMER=ON -DWITH_GTK=ON -DWITH_JPEG=ON -DWITH_LAPACK=OFF -DWITH_OPENMP=ON -DWITH_PNG=ON -DINSTALL_PYTHON_EXAMPLES=OFF -DINSTALL_C_EXAMPLES=OFF -DWITH_V4L=ON -DWITH_VTK=OFF -DWITH_CUDA=OFF -DWITH_CUBLAS=OFF -DOPENCV_EXTRA_MODULES_PATH='/home/anthony/Documents/Source/opencv-3.4.14/opencv_contrib/modules' ..
+```
+
+#### create vec file
+```javascript
+/usr/local/bin/opencv_createsamples -info info.dat -num 10 -bg bg.txt -vec samples_out.vec -show
 ```

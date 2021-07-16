@@ -140,7 +140,7 @@ class DistributedProcessing(object):
         # Grabs tagged pngs only
         tagged_pngs = [r for r in [re.search('(capture\d+_[\d\w]+_.png)',png) for png in pngs] if r]
         # removed tagged pngs from the original list
-        [pngs.remove(png.group()) for png in tagged_pngs]
+        [pngs.remove(DistributedProcessing.image_path+png.group()) for png in tagged_pngs if tagged_pngs]
 
     def process(self):
 
